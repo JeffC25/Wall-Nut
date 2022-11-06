@@ -3,16 +3,20 @@ import os
 import asyncio
 import youtube_dl
 import env
+import random
+
+print("Launching Phil...")
 
 token = env.token()
 
-client = discord.Client()
+musicQueue = []
+isPlaying = False
 
+client = discord.Client()
 voiceClients = {}
 
 ytOptions = {'format': 'bestaudio/best'}
 ytdl = youtube_dl.YoutubeDL(ytOptions)
-
 ffmpegOptions = {'options': "-vn"}
 
 @client.event
@@ -24,7 +28,15 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    if message.content.startswith("??play"):
+    if message.content.startswith("!!hi"):
+        await message.channel.send("Hello there!")
+        return 
+
+    if message.content.startswith("!!coin"):
+        await message.channel.send(random.choice(["Heads!", "Tails!"]))
+        return 
+
+    if message.content.startswith("!!play"):
         try:                                        
             url = message.content.split()[1]                                                                    # option video URL
 
@@ -34,11 +46,12 @@ async def on_message(message):
             loop = asyncio.get_event_loop()                                                                     # async event loop
             data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download = False))           # data to video audio
             song = data['url']                                                                                  # pass data
-            player = discord.FFmpegPCMAudio(song, **ffmpegOptions)                                              # set up player
 
+            player = discord.FFmpegPCMAudio(song, **ffmpegOptions)                                              # set up player
             voiceClient.play(player)
 
         except Exception as err:
             print(err)
-
+        return 
+        
 client.run(token)
